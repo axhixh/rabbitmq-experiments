@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/axhixh/rabbitmq-experiments/stream"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -13,16 +14,12 @@ func handleError(err error, msg string) {
 	}
 }
 
-func producer(ch chan string, name string, max int) {
-	for i := 0; i < max; i++ {
-		ch <- fmt.Sprintf("%s:%d", name, i)
-	}
-	ch <- "done"
-}
-
 func main() {
-	fmt.Println("Sending message")
-	conn, err := amqp.Dial("amqp://admin:O5Wbth9r3F8R@172.17.0.8:5672/")
+	log.Printf("Sending message")
+	url, err := stream.GetRabbitMQ()
+	handleError(err, "Unable to get RabbitMQ")
+
+	conn, err := amqp.Dial(url)
 	handleError(err, "Unable to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -33,20 +30,28 @@ func main() {
 	q, err := ch.QueueDeclare("q1", false, false, false, false, nil)
 	handleError(err, "Unable to create queue")
 
-	msgCh := make(chan string)
-	go producer(msgCh, "a", 10)
-	go producer(msgCh, "b", 15)
-	go producer(msgCh, "c", 7)
+	generators := []stream.Generator{
+		stream.Generator{Key: "AA", Color: 41},
+		stream.Generator{Key: "BB", Color: 42},
+		stream.Generator{Key: "CC", Color: 43}}
 
-	counter := 3
+	msgCh := make(chan stream.Message)
+	for i := range generators {
+		log.Printf("Starting %s", generators[i].Key)
+		go generators[i].Generate(msgCh, 6)
+	}
+
+	counter := len(generators)
 
 	for msg := <-msgCh; ; msg = <-msgCh {
-		if "done" == msg {
-			counter = counter - 1
+		if "done" == msg.Body {
+			counter--
+			log.Printf("finished %s", msg.Key)
 		} else {
+			log.Printf("sending %s", msg.Body)
 			err = ch.Publish("", q.Name, false, false, amqp.Publishing{
 				ContentType: "text/plain",
-				Body:        []byte(msg)})
+				Body:        []byte(msg.Body)})
 			handleError(err, "unable to send message")
 
 		}
