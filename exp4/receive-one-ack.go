@@ -27,6 +27,9 @@ func main() {
     err = ch.ExchangeDeclare("chash-one", "x-consistent-hash", true, false, false, false, nil)
     handleError(err, "Unable to declare exchange")
 
+    err = ch.Qos(1,0, true)
+    handleError(err, "Unable to set prefetch count")
+
     props := amqp.Table{"x-max-length": int64(1)}
 	q, err := ch.QueueDeclare("", true, false, true, false, props)
 	handleError(err, "Unable to create queue")
@@ -40,7 +43,7 @@ func main() {
 	go func() {
 		for d := range msg {
 			log.Printf("%s: %s", q.Name, d.Body)
-            time.Sleep(1 * time.Second)
+            time.Sleep(2 * time.Second)
             d.Ack(false)
 		}
 	}()

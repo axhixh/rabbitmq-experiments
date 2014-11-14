@@ -27,15 +27,14 @@ func main() {
     err = ch.ExchangeDeclare("chash-one", "x-consistent-hash", true, false, false, false, nil)
     handleError(err, "Unable to declare exchange")
 
-    err = ch.Qos(1, 0, true)
-    handleError(err, "Unable to set prefetch")
+    err = ch.Qos(1,0, true)
+    handleError(err, "Unable to set prefetch count")
 
-    prop := amqp.Table{"x-max-length": int64(1)}
-	q, err := ch.QueueDeclare("", true, false, true, false, prop)
+	q, err := ch.QueueDeclare("", true, false, true, false, nil)
 	handleError(err, "Unable to create queue")
 
     err = ch.QueueBind(q.Name, "100", "chash-one", false, nil)
-	msg, err := ch.Consume(q.Name, "", true, false, false, false, nil)
+	msg, err := ch.Consume(q.Name, "", false, false, false, false, nil)
 	handleError(err, "Failed to register consumer")
 
 	forever := make(chan bool)
@@ -43,7 +42,8 @@ func main() {
 	go func() {
 		for d := range msg {
 			log.Printf("%s: %s", q.Name, d.Body)
-            time.Sleep(3 * time.Second)
+            time.Sleep(2 * time.Second)
+            d.Ack(false)
 		}
 	}()
 
