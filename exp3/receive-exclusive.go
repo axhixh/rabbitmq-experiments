@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/axhixh/rabbitmq-experiments/stream"
+	"github.com/axhixh/rabbitmq-experiments/common"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -16,7 +16,7 @@ func handleError(err error, msg string) {
 
 func main() {
 	log.Println("Receiving message")
-	url, err := stream.GetRabbitMQ()
+	url, err := common.GetRabbitMQ()
 	handleError(err, "Unable to get address of RabbitMQ")
 	log.Printf(" with RabbitMQ at %s\n", url)
 	conn, err := amqp.Dial(url)

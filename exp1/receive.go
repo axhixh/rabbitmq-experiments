@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/axhixh/rabbitmq-experiments/stream"
+	"github.com/axhixh/rabbitmq-experiments/common"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -16,7 +16,7 @@ func errorHandler(err error, msg string) {
 
 func main() {
 	log.Printf("Receiving messages from: ")
-	url, err := stream.GetRabbitMQ()
+	url, err := common.GetRabbitMQ()
 	errorHandler(err, "Unable to get URL for RabbitMQ")
 
 	fmt.Printf("%s\n", url)

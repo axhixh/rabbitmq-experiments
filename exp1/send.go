@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/axhixh/rabbitmq-experiments/stream"
+	"github.com/axhixh/rabbitmq-experiments/common"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -16,7 +16,7 @@ func handleError(err error, msg string) {
 
 func main() {
 	log.Printf("Sending message")
-	url, err := stream.GetRabbitMQ()
+	url, err := common.GetRabbitMQ()
 	handleError(err, "Unable to get RabbitMQ")
 
 	conn, err := amqp.Dial(url)
@@ -30,12 +30,12 @@ func main() {
 	q, err := ch.QueueDeclare("q1", false, false, false, false, nil)
 	handleError(err, "Unable to create queue")
 
-	generators := []stream.Generator{
-		stream.Generator{Key: "AA", Color: 41},
-		stream.Generator{Key: "BB", Color: 42},
-		stream.Generator{Key: "CC", Color: 43}}
+	generators := []common.Generator{
+		common.Generator{Key: "AA", Color: 41},
+		common.Generator{Key: "BB", Color: 42},
+		common.Generator{Key: "CC", Color: 43}}
 
-	msgCh := make(chan stream.Message)
+	msgCh := make(chan common.Message)
 	for i := range generators {
 		log.Printf("Starting %s", generators[i].Key)
 		go generators[i].Generate(msgCh, 6)

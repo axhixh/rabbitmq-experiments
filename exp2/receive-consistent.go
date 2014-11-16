@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/axhixh/rabbitmq-experiments/stream"
+	"github.com/axhixh/rabbitmq-experiments/common"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -24,7 +24,7 @@ func getQueueName() string {
 
 func main() {
 	log.Printf("Receiving message ")
-	url, err := stream.GetRabbitMQ()
+	url, err := common.GetRabbitMQ()
 	handleError(err, "Unable to get RabbitMQ")
 
 	queueName := getQueueName()

@@ -1,4 +1,4 @@
-package stream
+package common
 
 type Message struct {
 	Key  string

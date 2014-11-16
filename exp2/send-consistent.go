@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/axhixh/rabbitmq-experiments/stream"
+	"github.com/axhixh/rabbitmq-experiments/common"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -16,7 +16,7 @@ func handleError(err error, msg string) {
 
 func main() {
 	log.Printf("Sending message")
-	url, err := stream.GetRabbitMQ()
+	url, err := common.GetRabbitMQ()
 	handleError(err, "Unable to connect to RabbitMQ")
 	log.Printf("using RabbitMQ %s\n", url)
 	conn, err := amqp.Dial(url)
@@ -31,11 +31,11 @@ func main() {
 	err = ch.ExchangeDeclare(exchangeName, "x-consistent-hash", false, false, false, false, nil)
 	handleError(err, "Unable to declare exchange")
 
-	msgCh := make(chan stream.Message)
+	msgCh := make(chan common.Message)
 
 	categories := []string{"AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH"}
 	for i, cat := range categories {
-		gen := stream.Generator{Key: cat, Color: 41 + i}
+		gen := common.Generator{Key: cat, Color: 41 + i}
 		log.Printf("Starting %s", gen.Key)
 		go gen.Generate(msgCh, 20)
 	}
