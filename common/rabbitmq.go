@@ -3,6 +3,7 @@ package common
 import (
 	"flag"
 	"fmt"
+	"log"
 )
 
 func GetRabbitMQ() (string, error) {
@@ -13,4 +14,11 @@ func GetRabbitMQ() (string, error) {
 		return "", fmt.Errorf("AMQP URL is missing [amqp://user:pass@server:5671/]")
 	}
 	return url, nil
+}
+
+func HandleError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+		panic(fmt.Sprintf("%s: %s", msg, err))
+	}
 }
