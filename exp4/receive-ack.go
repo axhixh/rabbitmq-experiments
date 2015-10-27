@@ -1,49 +1,43 @@
 package main
 
 import (
-	"fmt"
-	"github.com/streadway/amqp"
 	"log"
-    "time"
+	"time"
+
+	"github.com/axhixh/rabbitmq-experiments/common"
+	"github.com/streadway/amqp"
 )
 
-func handleError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-		panic(fmt.Sprintf("%s: %s", msg, err))
-	}
-}
-
 func main() {
-	fmt.Println("Receiving message")
+	log.Println("Receiving message")
 	conn, err := amqp.Dial("amqp://admin:VgkDl7PM5DzY@172.17.0.3:5672/")
-	handleError(err, "Unable to connect to RabbitMQ")
+	common.HandleError(err, "Unable to connect to RabbitMQ")
 	defer conn.Close()
 
 	ch, err := conn.Channel()
-	handleError(err, "Unable to open a channel")
+	common.HandleError(err, "Unable to open a channel")
 	defer ch.Close()
 
-    err = ch.ExchangeDeclare("chash-one", "x-consistent-hash", true, false, false, false, nil)
-    handleError(err, "Unable to declare exchange")
+	err = ch.ExchangeDeclare("chash-one", "x-consistent-hash", true, false, false, false, nil)
+	common.HandleError(err, "Unable to declare exchange")
 
-    err = ch.Qos(1,0, true)
-    handleError(err, "Unable to set prefetch count")
+	err = ch.Qos(1, 0, true)
+	common.HandleError(err, "Unable to set prefetch count")
 
 	q, err := ch.QueueDeclare("", true, false, true, false, nil)
-	handleError(err, "Unable to create queue")
+	common.HandleError(err, "Unable to create queue")
 
-    err = ch.QueueBind(q.Name, "100", "chash-one", false, nil)
+	err = ch.QueueBind(q.Name, "100", "chash-one", false, nil)
 	msg, err := ch.Consume(q.Name, "", false, false, false, false, nil)
-	handleError(err, "Failed to register consumer")
+	common.HandleError(err, "Failed to register consumer")
 
 	forever := make(chan bool)
 
 	go func() {
 		for d := range msg {
 			log.Printf("%s: %s", q.Name, d.Body)
-            time.Sleep(2 * time.Second)
-            d.Ack(false)
+			time.Sleep(2 * time.Second)
+			d.Ack(false)
 		}
 	}()
 
